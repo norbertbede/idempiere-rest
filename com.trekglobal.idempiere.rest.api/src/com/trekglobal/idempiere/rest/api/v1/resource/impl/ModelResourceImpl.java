@@ -57,6 +57,7 @@ import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.exceptions.CrossTenantException;
 import org.compiere.model.GridField;
 import org.compiere.model.GridFieldVO;
+import org.compiere.model.MArchive;
 import org.compiere.model.MAttachment;
 import org.compiere.model.MAttachmentEntry;
 import org.compiere.model.MColumn;
@@ -924,6 +925,100 @@ public class ModelResourceImpl implements ModelResource {
 		} else {
 			return poParser.getResponseError();
 		}
+	}
+
+	@Override
+	public Response getArchives(String tableName, String id) {
+		MRestView view = null;
+		if (useRestView) {
+			view = RestUtils.getView(tableName);
+			if (view != null)
+				tableName = MTable.getTableName(Env.getCtx(), view.getAD_Table_ID());
+			else
+				return ResponseUtils.getResponseErrorFromException(new IDempiereRestException("Invalid rest view name", "No match found for rest view name: " + tableName, Status.NOT_FOUND), "Not found");
+		}
+
+		JsonArray array = new JsonArray();
+		POParser poParser = new POParser(tableName, id, true, false);
+		if (poParser.isValidPO()) {
+			PO po = poParser.getPO();
+			List<MArchive> archives = new Query(Env.getCtx(), MArchive.Table_Name, "AD_Table_ID=? AND Record_ID=?", null)
+					.setParameters(po.get_Table_ID(), po.get_ID())
+					.setOrderBy("Created DESC")
+					.list();
+			for (MArchive archive : archives) {
+				JsonObject entryJsonObject = new JsonObject();
+				entryJsonObject.addProperty("id", archive.getAD_Archive_ID());
+				if (!Util.isEmpty(archive.getName(), true))
+					entryJsonObject.addProperty("name", archive.getName());
+				entryJsonObject.addProperty("contentType", getArchiveContentType(archive));
+				entryJsonObject.addProperty("isReport", archive.isReport());
+				if (archive.getAD_Process_ID() > 0)
+					entryJsonObject.addProperty("processId", archive.getAD_Process_ID());
+				if (archive.getCreated() != null)
+					entryJsonObject.addProperty("created", archive.getCreated().toString());
+				array.add(entryJsonObject);
+			}
+			JsonObject json = new JsonObject();
+			json.add("archives", array);
+			return Response.ok(json.toString()).build();
+		} else {
+			return poParser.getResponseError();
+		}
+	}
+
+	@Override
+	public Response getArchiveEntry(String tableName, String id, int archiveId, String asJson) {
+		MRestView view = null;
+		if (useRestView) {
+			view = RestUtils.getView(tableName);
+			if (view != null)
+				tableName = MTable.getTableName(Env.getCtx(), view.getAD_Table_ID());
+			else
+				return ResponseUtils.getResponseErrorFromException(new IDempiereRestException("Invalid rest view name", "No match found for rest view name: " + tableName, Status.NOT_FOUND), "Not found");
+		}
+
+		POParser poParser = new POParser(tableName, id, true, false);
+		if (poParser.isValidPO()) {
+			PO po = poParser.getPO();
+			MArchive archive = new Query(Env.getCtx(), MArchive.Table_Name, "AD_Archive_ID=? AND AD_Table_ID=? AND Record_ID=?", null)
+					.setParameters(archiveId, po.get_Table_ID(), po.get_ID())
+					.first();
+			if (archive != null) {
+				byte[] binaryData = archive.getBinaryData();
+				if (binaryData != null) {
+					if (asJson == null) {
+						return Response.ok(binaryData).header("Content-Type", getArchiveContentType(archive)).build();
+					} else {
+						JsonObject json = new JsonObject();
+						json.addProperty("data", Base64.getEncoder().encodeToString(binaryData));
+						return Response.ok(json.toString()).build();
+					}
+				}
+			}
+			return Response.status(Status.NOT_FOUND)
+					.entity(new ErrorBuilder().status(Status.NOT_FOUND)
+							.title("No archive entry found")
+							.append("No archive entry found for id: ")
+							.append(String.valueOf(archiveId))
+							.build().toString())
+					.build();
+		} else {
+			return poParser.getResponseError();
+		}
+	}
+
+	/**
+	 * Resolve the content type of an archive. Archives are normally report PDFs,
+	 * so fall back to application/pdf when the name carries no usable extension.
+	 * @param archive archive item
+	 * @return mime type
+	 */
+	private String getArchiveContentType(MArchive archive) {
+		String mimeType = Util.isEmpty(archive.getName(), true) ? null : MimeType.getMimeType(archive.getName());
+		if (Util.isEmpty(mimeType, true) || "application/octet-stream".equals(mimeType))
+			return "application/pdf";
+		return mimeType;
 	}
 
 	@Override

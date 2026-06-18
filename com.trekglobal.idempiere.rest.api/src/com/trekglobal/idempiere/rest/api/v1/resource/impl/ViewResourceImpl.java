@@ -227,6 +227,16 @@ public class ViewResourceImpl implements ViewResource {
 	}
 
 	@Override
+	public Response getArchives(String tableName, String id) {
+		return restView().getArchives(tableName, id);
+	}
+
+	@Override
+	public Response getArchiveEntry(String tableName, String id, int archiveId, String asJson) {
+		return restView().getArchiveEntry(tableName, id, archiveId, asJson);
+	}
+
+	@Override
 	public Response printModelRecord(String tableName, String id, String reportType) {
 		return restView().printModelRecord(tableName, id, reportType);
 	}
