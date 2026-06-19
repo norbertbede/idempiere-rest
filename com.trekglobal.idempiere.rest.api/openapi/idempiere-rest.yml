@@ -464,6 +464,39 @@ components:
                 description: attachment content type
                 example: image/png
       description: An array of attachment entries
+    Archives:
+      type: object
+      properties:
+        archives:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: AD_Archive_ID of the archive entry
+                example: 1000123
+              name:
+                type: string
+                description: archive name
+                example: Invoice_1000045.pdf
+              contentType:
+                type: string
+                description: archive content type
+                example: application/pdf
+              isReport:
+                type: boolean
+                description: true when the archive was produced by a report/print
+                example: true
+              processId:
+                type: integer
+                description: AD_Process_ID that generated the archive (omitted when not set)
+                example: 110
+              created:
+                type: string
+                description: timestamp the archive was created
+                example: '2026-06-19 09:00:00.0'
+      description: An array of archive entries, most recent first
     TabField:
       description: tab field description
       type: object
@@ -4595,6 +4628,115 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
+  /models/{tableName}/{id}/archives:
+    parameters:
+      - $ref: '#/components/parameters/locale'
+    get:
+      tags:
+        - Models
+      summary: Get list of archives of a record
+      description: >-
+        Returns the archive entries (e.g. previously printed report PDFs stored in
+        AD_Archive) attached to the record, most recent first.
+      parameters:
+        - name: tableName
+          in: path
+          schema:
+            type: string
+          description: table name
+          required: true
+          examples:
+            C_Invoice:
+              value: 'c_invoice'
+        - name: id
+          in: path
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+          description: integer record id or string record uuid
+          required: true
+          examples:
+            C_Invoice_1000045:
+              value: 1000045
+      responses:
+        '200':
+          description: OK. Return the list of archive records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Archives'
+        '403':
+          $ref: '#/components/responses/ForbiddenGetRecordRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /models/{tableName}/{id}/archives/{archiveId}:
+    parameters:
+      - $ref: '#/components/parameters/locale'
+    get:
+      tags:
+        - Models
+      summary: Get archive of a record by archive id
+      description: >-
+        Returns the binary content of a single archive entry. By default the raw
+        file stream is returned; pass the json query parameter to receive a JSON
+        object with base64 encoded data instead.
+      parameters:
+        - name: tableName
+          in: path
+          schema:
+            type: string
+          description: table name
+          required: true
+        - name: id
+          in: path
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+          description: integer record id or string record uuid
+          required: true
+        - name: archiveId
+          in: path
+          schema:
+            type: integer
+          description: AD_Archive_ID of the archive entry
+          required: true
+        - name: json
+          in: query
+          schema:
+            type: string
+          description: 'not empty to get archive content as base64 encoded data ("data": "base64 content")'
+      responses:
+        '200':
+          description: OK. Successfully retrieved the archive. The response body is either the file stream or a JSON object with base64 encoded data (if json is specified).
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: archive name
+                  contentType:
+                    type: string
+                    description: archive content type
+                  data:
+                    type: string
+                    format: byte
+                    description: base64 encoded archive content
+        '403':
+          $ref: '#/components/responses/ForbiddenGetRecordRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /models/{tableName}/{id}/print:
     parameters:
       - $ref: '#/components/parameters/locale'
@@ -7601,6 +7743,109 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/BinaryResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenGetRecordRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /views/{viewName}/{id}/archives:
+    parameters:
+      - $ref: '#/components/parameters/locale'
+    get:
+      tags:
+        - Views
+      summary: Get list of archives of a record
+      description: >-
+        Returns the archive entries (e.g. previously printed report PDFs stored in
+        AD_Archive) attached to the record, most recent first.
+      parameters:
+        - name: viewName
+          in: path
+          schema:
+            type: string
+          description: REST_View name
+          required: true
+        - name: id
+          in: path
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+          description: integer record id or string record uuid
+          required: true
+      responses:
+        '200':
+          description: OK. Return the list of archive records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Archives'
+        '403':
+          $ref: '#/components/responses/ForbiddenGetRecordRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /views/{viewName}/{id}/archives/{archiveId}:
+    parameters:
+      - $ref: '#/components/parameters/locale'
+    get:
+      tags:
+        - Views
+      summary: Get archive of a record by archive id
+      description: >-
+        Returns the binary content of a single archive entry. By default the raw
+        file stream is returned; pass the json query parameter to receive a JSON
+        object with base64 encoded data instead.
+      parameters:
+        - name: viewName
+          in: path
+          schema:
+            type: string
+          description: REST_View name
+          required: true
+        - name: id
+          in: path
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+          description: integer record id or string record uuid
+          required: true
+        - name: archiveId
+          in: path
+          schema:
+            type: integer
+          description: AD_Archive_ID of the archive entry
+          required: true
+        - name: json
+          in: query
+          schema:
+            type: string
+          description: 'not empty to get archive content as base64 encoded data ("data": "base64 content")'
+      responses:
+        '200':
+          description: OK. Successfully retrieved the archive. The response body is either the file stream or a JSON object with base64 encoded data (if json is specified).
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: archive name
+                  contentType:
+                    type: string
+                    description: archive content type
+                  data:
+                    type: string
+                    format: byte
+                    description: base64 encoded archive content
         '403':
           $ref: '#/components/responses/ForbiddenGetRecordRequest'
         '404':

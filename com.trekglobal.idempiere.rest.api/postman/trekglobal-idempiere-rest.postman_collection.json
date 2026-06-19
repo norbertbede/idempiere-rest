@@ -2731,6 +2731,137 @@
 			"response": []
 		},
 		{
+			"name": "api/v1/models/{table name}/{id}/archives",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/models/c_invoice/1000045/archives",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"models",
+						"c_invoice",
+						"1000045",
+						"archives"
+					]
+				},
+				"description": "Get the list of archives (e.g. previously printed report PDFs) of a record, most recent first"
+			},
+			"response": []
+		},
+		{
+			"name": "api/v1/models/{table name}/{id}/archives/{archive id}",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/models/c_invoice/1000045/archives/1000123",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"models",
+						"c_invoice",
+						"1000045",
+						"archives",
+						"1000123"
+					]
+				},
+				"description": "Get the binary content of a single archive entry by AD_Archive_ID"
+			},
+			"response": []
+		},
+		{
+			"name": "api/v1/models/{table name}/{id}/archives/{archive id}?json",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/models/c_invoice/1000045/archives/1000123?json=true",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"models",
+						"c_invoice",
+						"1000045",
+						"archives",
+						"1000123"
+					],
+					"query": [
+						{
+							"key": "json",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Get a single archive entry as base64 encoded JSON (json query param)"
+			},
+			"response": []
+		},
+		{
 			"name": "api/v1/models/{table name}/{id}/attachments",
 			"request": {
 				"method": "POST",
