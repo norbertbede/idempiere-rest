@@ -245,7 +245,7 @@ public interface ModelResource {
 
 	@Path("{tableName}/{id}/archives/{archiveId}")
 	@GET
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_JSON})
 	/**
 	 * Get content of an archive item
 	 * @param tableName

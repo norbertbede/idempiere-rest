@@ -992,7 +992,7 @@ public class ModelResourceImpl implements ModelResource {
 					} else {
 						JsonObject json = new JsonObject();
 						json.addProperty("data", Base64.getEncoder().encodeToString(binaryData));
-						return Response.ok(json.toString()).build();
+						return Response.ok(json.toString(), "application/json").build();
 					}
 				}
 			}
@@ -1017,7 +1017,7 @@ public class ModelResourceImpl implements ModelResource {
 	private String getArchiveContentType(MArchive archive) {
 		String mimeType = Util.isEmpty(archive.getName(), true) ? null : MimeType.getMimeType(archive.getName());
 		if (Util.isEmpty(mimeType, true) || "application/octet-stream".equals(mimeType))
-			return "application/pdf";
+			return archive.isReport() ? "application/pdf" : "application/octet-stream";
 		return mimeType;
 	}
 
